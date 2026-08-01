@@ -17,7 +17,7 @@ DistributionCollection -> Assemblage -> InferenceModel -> EcologicalNetwork
 
 ```r
 # install.packages("remotes")
-remotes::install_github("USERNAME/metaweave")
+remotes::install_github("fgabriel1891/metaweave")
 ```
 
 ## Generic producer-consumer example
