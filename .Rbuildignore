@@ -1,0 +1,5 @@
+^\.github$
+^\.gitignore$
+^README\.Rmd$
+^cran-comments\.md$
+

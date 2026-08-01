@@ -1,0 +1,53 @@
+---
+title: "MetaWeave architecture"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MetaWeave architecture}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Vision
+
+MetaWeave reconstructs spatial ecological structure from incomplete information. Its central abstraction is not a raster or a stochastic block model, but a local ecological system: co-occurring species and inferred relationships among them.
+
+## Object pipeline
+
+1. A `distribution_collection` answers where species can occur.
+2. An `assemblage` represents local coexistence without assuming interactions.
+3. An `inference_model` maps an assemblage to an `ecological_network`.
+4. Simulations turn probabilistic networks into possible observations.
+5. Metrics summarize networks without knowing how they were inferred.
+6. A `spatial_result` maps those summaries back to geography.
+
+## Pluggable inference
+
+The first generic backend is `block_model()`, which assigns interaction probabilities from latent block pairs. Its row and column group names are supplied by the user. A trait backend can use exactly the same contract:
+
+```{r}
+library(metaweave)
+
+trait_predict <- function(model, assemblage) {
+  producers <- assemblage$species$producers
+  consumers <- assemblage$species$consumers
+  p <- outer(producers, consumers, Vectorize(function(i, j) model$parameters$score(i, j)))
+  dimnames(p) <- list(producers, consumers)
+  new_ecological_network(p, "probability", row_group = "producers", column_group = "consumers")
+}
+
+trait_model <- new_inference_model(
+  trait_predict,
+  name = "trait matching",
+  parameters = list(score = function(palm, mammal) 0.5)
+)
+```
+
+Downstream simulation, summaries, and maps do not change when the model changes.
+
+## Design boundaries
+
+MetaWeave coordinates ecological inference. It does not replace GIS, species-distribution modelling, specialist network statistics, or visualization packages. This boundary keeps its model interface stable while allowing those tools to evolve independently.

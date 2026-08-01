@@ -1,0 +1,381 @@
+---
+title: "Reconstructing palm-mammal networks with MetaWeave"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Reconstructing palm-mammal networks with MetaWeave}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+This vignette reconstructs local palm-mammal networks in four steps: clean the
+species distributions, match species across datasets, fit a regional network
+model, and project that model into local communities.
+
+## 1. Load packages and data
+
+Change `project_dir` if the project is moved. Keeping one root path makes the
+analysis easier to reproduce on another computer.
+
+```{r data}
+library(metaweave)
+library(terra)
+library(dplyr)
+library(cassandRa)
+
+project_dir <- paste0(
+  "C:/Users/gabri/Documents/PhD/",
+  "Network_reconstruction_under_data_scarsity/MetaWeave/MetaWeave"
+)
+
+palm_grid_occ <- readRDS(file.path(
+  project_dir,
+  "DATA/clean_datasets/palm_ranges_grid_stack.RDS"
+))
+
+mammal_grid_occ <- readRDS(file.path(
+  project_dir,
+  "DATA/clean_datasets/mammal_ranges_grid_stack.RDS"
+))
+
+palm_traits <- read.csv(file.path(
+  project_dir,
+  "Data/01_species_traits/final_palm_trait.csv"
+))
+
+mammal_traits <- read.csv(file.path(
+  project_dir,
+  "Data/01_species_traits/final_mammal_trait.csv"
+))
+
+palm_mammal_frugivory <- read.csv(file.path(
+  project_dir,
+  paste0(
+    "DATA/02_species_interactions/PalmDryadRepo/",
+    "Munozetal2019/PalmFrugDatasetOCT2018.csv"
+  )
+)) |>
+  filter(
+    frugClass == "MAMMAL",
+    biogeographicRegion == "Neotropics"
+  )
+```
+
+The trait tables are loaded for future trait-based models. The example below
+uses species identities and observed interactions.
+
+## 2. Clean species ranges
+
+Species names must use the same format in every dataset. Duplicate raster
+layers are merged because they describe separate polygons for the same species.
+
+```{r clean-ranges}
+standardize_species <- function(x) {
+  x <- trimws(tolower(as.character(x)))
+  x <- gsub("[^[:alnum:]]+", "_", x)
+  gsub("^_+|_+$", "", x)
+}
+
+merge_duplicate_ranges <- function(x) {
+  groups <- factor(names(x), levels = unique(names(x)))
+
+  merged <- terra::tapp(
+    x,
+    index = groups,
+    fun = "sum",
+    na.rm = TRUE
+  )
+
+  merged <- terra::ifel(merged > 0, 1, NA)
+  names(merged) <- levels(groups)
+  merged
+}
+
+remove_empty_ranges <- function(x) {
+  limits <- terra::global(x, c("min", "max"), na.rm = TRUE)
+  keep <- !is.na(limits$min) & !is.na(limits$max)
+  x[[which(keep)]]
+}
+
+names(palm_grid_occ) <- standardize_species(names(palm_grid_occ))
+names(mammal_grid_occ) <- standardize_species(names(mammal_grid_occ))
+
+palm_grid_occ <- palm_grid_occ |>
+  merge_duplicate_ranges() |>
+  remove_empty_ranges()
+
+mammal_grid_occ <- mammal_grid_occ |>
+  merge_duplicate_ranges() |>
+  remove_empty_ranges()
+
+stopifnot(
+  !anyDuplicated(names(palm_grid_occ)),
+  !anyDuplicated(names(mammal_grid_occ))
+)
+```
+
+## 3. Match ranges and interactions
+
+The interaction table uses `PALM` for producers and `FRUGIVORE` for consumers.
+Only species present in both the regional interaction data and range rasters are
+retained.
+
+```{r match-species}
+interaction_data <- palm_mammal_frugivory |>
+  transmute(
+    producer = standardize_species(PALM),
+    consumer = standardize_species(FRUGIVORE)
+  ) |>
+  filter(
+    !is.na(producer),
+    !is.na(consumer),
+    producer != "",
+    consumer != ""
+  )
+
+model_producers <- intersect(
+  names(palm_grid_occ),
+  unique(interaction_data$producer)
+)
+
+model_consumers <- intersect(
+  names(mammal_grid_occ),
+  unique(interaction_data$consumer)
+)
+
+stopifnot(
+  length(model_producers) > 0,
+  length(model_consumers) > 0
+)
+
+producer_ranges <- palm_grid_occ[[model_producers]]
+consumer_ranges <- mammal_grid_occ[[model_consumers]]
+
+stopifnot(compareGeom(
+  producer_ranges,
+  consumer_ranges,
+  stopOnError = FALSE
+))
+
+cat("Matched palms:", length(model_producers), "\n")
+cat("Matched mammals:", length(model_consumers), "\n")
+```
+
+## 4. Build an observed-metaweb baseline
+
+The baseline treats every recorded regional interaction as present. It is useful
+for testing the spatial workflow before fitting a probabilistic model.
+
+```{r observed-model}
+observed_interactions <- interaction_data |>
+  filter(
+    producer %in% model_producers,
+    consumer %in% model_consumers
+  ) |>
+  distinct(producer, consumer) |>
+  mutate(observed = 1)
+
+theta_observed <- interaction_table_to_matrix(
+  data = observed_interactions,
+  row_col = "producer",
+  column_col = "consumer",
+  value_col = "observed",
+  fill = 0
+)
+
+producer_lookup <- data.frame(
+  species = rownames(theta_observed),
+  guild = rownames(theta_observed)
+)
+
+consumer_lookup <- data.frame(
+  species = colnames(theta_observed),
+  guild = colnames(theta_observed)
+)
+
+observed_model <- block_model(
+  row_lookup = producer_lookup,
+  column_lookup = consumer_lookup,
+  theta = theta_observed,
+  row_group = "producers",
+  column_group = "consumers"
+)
+```
+
+Project the regional metaweb into every cell where at least one palm and one
+mammal occur.
+
+```{r observed-spatial}
+observed_result <- run_spatial_inference(
+  distributions = list(
+    producers = producer_ranges,
+    consumers = consumer_ranges
+  ),
+  model = observed_model,
+  min_species = 1
+)
+
+head(observed_result$result$index)
+
+plot(
+  observed_result$spatial$data[[
+    c(
+      "row_richness",
+      "column_richness",
+      "expected_links",
+      "mean_probability"
+    )
+  ]],
+  main = c(
+    "Palm richness",
+    "Mammal richness",
+    "Recorded links",
+    "Local connectance"
+  )
+)
+```
+
+## 5. Fit a stochastic block model
+
+`cassandRa` groups species by their interaction patterns. MetaWeave then uses
+the fitted group memberships and block probabilities to infer local networks.
+
+```{r fit-sbm}
+regional_web <- xtabs(
+  ~ producer + consumer,
+  data = interaction_data |>
+    filter(
+      producer %in% model_producers,
+      consumer %in% model_consumers
+    )
+) |>
+  as.matrix()
+
+regional_web <- regional_web[
+  rowSums(regional_web) > 0,
+  colSums(regional_web) > 0,
+  drop = FALSE
+]
+
+set.seed(123)
+
+cass_fit <- regional_web |>
+  cassandRa::CreateListObject() |>
+  cassandRa::FitSBM(n_SBM = 10, G = NULL)
+
+best_sbm <- cass_fit$SBM1
+theta_sbm <- best_sbm$Omega_rs
+
+producer_block_names <- paste0(
+  "producer_block_",
+  seq_len(nrow(theta_sbm))
+)
+
+consumer_block_names <- paste0(
+  "consumer_block_",
+  seq_len(ncol(theta_sbm))
+)
+
+rownames(theta_sbm) <- producer_block_names
+colnames(theta_sbm) <- consumer_block_names
+
+producer_lookup <- data.frame(
+  species = rownames(regional_web),
+  guild = producer_block_names[best_sbm$SB_H]
+)
+
+consumer_lookup <- data.frame(
+  species = colnames(regional_web),
+  guild = consumer_block_names[best_sbm$SB_W]
+)
+
+sbm_model <- block_model(
+  row_lookup = producer_lookup,
+  column_lookup = consumer_lookup,
+  theta = theta_sbm,
+  row_group = "producers",
+  column_group = "consumers"
+)
+```
+
+## 6. Reconstruct and map local SBM networks
+
+The output contains one probability network per eligible cell, a cell index,
+and rasters of network summaries.
+
+```{r spatial-sbm}
+sbm_result <- run_spatial_inference(
+  distributions = list(
+    producers = producer_ranges[[producer_lookup$species]],
+    consumers = consumer_ranges[[consumer_lookup$species]]
+  ),
+  model = sbm_model,
+  min_species = 1
+)
+
+head(sbm_result$result$index)
+
+plot(
+  sbm_result$spatial$data[[
+    c(
+      "row_richness",
+      "column_richness",
+      "possible_links",
+      "expected_links",
+      "mean_probability"
+    )
+  ]],
+  main = c(
+    "Palm richness",
+    "Mammal richness",
+    "Possible links",
+    "Expected SBM links",
+    "Mean SBM probability"
+  )
+)
+```
+
+`expected_links` is the sum of species-pair probabilities in each cell. The
+observed baseline describes known links, while the SBM also assigns probability
+to interactions that were not recorded regionally.
+
+## 7. Optional ensemble predictions
+
+If `cassandRa::FitSBM()` returns a normalized species-level probability matrix,
+MetaWeave can use it directly. This preserves ensemble predictions without
+forcing them into one block partition.
+
+```{r ensemble}
+ensemble_probabilities <- cass_fit$SBM_ProbsMat
+dimnames(ensemble_probabilities) <- dimnames(regional_web)
+
+stopifnot(
+  all(is.finite(ensemble_probabilities)),
+  all(ensemble_probabilities >= 0),
+  all(ensemble_probabilities <= 1)
+)
+
+ensemble_model <- probability_matrix_model(
+  probability_matrix = ensemble_probabilities,
+  row_group = "producers",
+  column_group = "consumers",
+  name = "cassandRa SBM ensemble"
+)
+
+ensemble_result <- run_spatial_inference(
+  distributions = list(
+    producers = producer_ranges[[rownames(ensemble_probabilities)]],
+    consumers = consumer_ranges[[colnames(ensemble_probabilities)]]
+  ),
+  model = ensemble_model,
+  min_species = 1
+)
+```
+
