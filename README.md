@@ -1,7 +1,7 @@
 # MetaWeave
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/USERNAME/metaweave/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/USERNAME/metaweave/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/fgabriel1891/metaweave/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/fgabriel1891/metaweave/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `metaweave` is a model-agnostic framework for weaving regional distributions and ecological models into spatially explicit local networks.
@@ -86,5 +86,3 @@ devtools::document()
 devtools::test()
 devtools::check()
 ```
-
-Before publishing, replace `USERNAME` and the placeholder maintainer email in `DESCRIPTION`, this README, and `CITATION.cff`.
