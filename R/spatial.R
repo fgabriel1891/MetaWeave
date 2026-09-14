@@ -93,6 +93,11 @@ crop_filter_stack <- function(stack, region, return_cropped = TRUE) {
 }
 
 #' Prepare palm and mammal range stacks
+#' @param palm_source,mammal_source Range sources accepted by `build_range_stack()`.
+#' @param mammal_species_col Species-name column in the mammal source.
+#' @param mammal_species_keep Optional mammal species subset.
+#' @param output_dir Optional directory in which to save the range stacks.
+#' @inheritParams build_range_stack
 #' @export
 prepare_range_stacks <- function(palm_source, mammal_source, mammal_species_col, mammal_species_keep = NULL,
                                  template = create_standard_grid(), region = NULL, output_dir = NULL, touches = TRUE) {
@@ -126,4 +131,3 @@ assemble_communities <- function(distributions, min_species = 1L) {
     new_assemblage(spp, cells[k], c(x = xy[k, 1], y = xy[k, 2]))
   })
 }
-

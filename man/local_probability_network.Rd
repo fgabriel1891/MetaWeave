@@ -15,6 +15,19 @@ local_probability_network(
   cell_id = NA_integer_
 )
 }
+\arguments{
+\item{palms, mammals}{Species names in each network group.}
+
+\item{palm_lookup, mammal_lookup}{Species-to-guild lookup tables.}
+
+\item{theta}{Guild-by-guild probability matrix.}
+
+\item{species_col}{Species column in lookup tables.}
+
+\item{guild_col}{Guild column in lookup tables.}
+
+\item{cell_id}{Optional raster cell identifier.}
+}
 \description{
 Compatibility wrapper around \code{local_block_network()}.
 }

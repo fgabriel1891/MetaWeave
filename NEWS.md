@@ -1,8 +1,16 @@
+# metaweave 0.4.0
+
+* Adds `maxent_model()` for directed maximum-entropy ensembles constrained by connectance, link count, or degree sequences.
+* Supports directed unipartite food webs, optional self-links, locally isolated random streams, and optional retention of ensemble members.
+* Extends `ecological_network` objects with explicit `directed` and `self_links` fields.
+* Adds validation, unit tests, and a reproducible maximum-entropy vignette.
+
 # metaweave 0.3.0
 
 * Renames the package and framework from rangerast to MetaWeave.
 * Positions the package around weaving regional ecological information into local spatial networks.
 * Adds `probability_matrix_model()` for direct use of named species-pair probability matrices, including ensemble predictions from external models.
+* Adds a self-contained methods and simulation vignette covering inference, spatial reconstruction, sampling error, and standardized metrics.
 
 # rangerast 0.2.0
 

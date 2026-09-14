@@ -1,0 +1,89 @@
+---
+title: "Maximum-entropy network inference"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Maximum-entropy network inference}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+MetaWeave's first maximum-entropy backend generates binary food webs under
+explicit structural constraints and averages them into marginal link
+probabilities. It implements the minimally biased constrained-ensemble idea of
+Banville, Gravel and Poisot (2023), but uses exact fixed-link sampling or a
+degree-preserving swap chain instead of their SVD-entropy simulated annealing.
+
+## Directed food web
+
+Rows are consumers and columns are resources. The same species pool can occupy
+both roles.
+
+```{r}
+library(metaweave)
+
+web <- new_assemblage(
+  list(species = c("algae", "grazer", "fish", "bird")),
+  cell_id = 1
+)
+
+model <- maxent_model(
+  row_group = "species",
+  constraint = "connectance",
+  connectance = 0.25,
+  ensemble_size = 500,
+  self_links = FALSE,
+  seed = 42
+)
+
+probability_web <- infer_network(web, model)
+round(probability_web$matrix, 2)
+```
+
+Every ensemble member has exactly `round(0.25 * 12) = 3` links because four
+species provide 12 directed non-self dyads. Each matrix entry is the fraction of
+ensemble members containing that interaction.
+
+## Fixed degree sequences
+
+Named degree vectors can preserve the number of resources used by each consumer
+and the number of consumers using each resource.
+
+```{r}
+degrees <- c(algae = 1, grazer = 1, fish = 1, bird = 1)
+
+degree_model <- maxent_model(
+  row_group = "species",
+  constraint = "degree_sequence",
+  out_degree = degrees,
+  in_degree = degrees,
+  ensemble_size = 250,
+  self_links = FALSE,
+  seed = 42,
+  burn_in = 500,
+  thin = 50
+)
+
+degree_web <- infer_network(web, degree_model)
+round(degree_web$matrix, 2)
+```
+
+The degree sampler first finds a feasible adjacency matrix and then applies
+checkerboard swaps that preserve every row and column sum. It approximates a
+uniform distribution over feasible matrices. Convergence diagnostics and the
+SVD-entropy objective are intentionally deferred to a later backend revision.
+
+## Reproducibility
+
+A non-null seed creates a local random stream and restores R's previous random
+state after inference. For spatial collections, the cell identifier is added to
+the seed, giving cells distinct but repeatable ensembles.
+
+## Reference
+
+Banville F, Gravel D, Poisot T (2023). "What constrains food webs? A maximum
+entropy framework for predicting their structure with minimal biases." *PLOS
+Computational Biology*, 19, e1011458.

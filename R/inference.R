@@ -177,6 +177,9 @@ sbm_model <- function(palm_lookup, mammal_lookup, theta, species_col = "species"
 }
 
 #' Build one local generic block-model network directly
+#' @param rows,columns Species names in each network group.
+#' @param cell_id Optional raster cell identifier.
+#' @inheritParams block_model
 #' @export
 local_block_network <- function(rows, columns, row_lookup, column_lookup, theta,
                                 row_group = "rows", column_group = "columns",
@@ -189,6 +192,9 @@ local_block_network <- function(rows, columns, row_lookup, column_lookup, theta,
 
 #' Build one local palm-mammal probability network directly
 #' @description Compatibility wrapper around `local_block_network()`.
+#' @param palms,mammals Species names in each network group.
+#' @param cell_id Optional raster cell identifier.
+#' @inheritParams sbm_model
 #' @export
 local_probability_network <- function(palms, mammals, palm_lookup, mammal_lookup, theta,
                                       species_col = "species", guild_col = "guild", cell_id = NA_integer_) {
@@ -197,6 +203,9 @@ local_probability_network <- function(palms, mammals, palm_lookup, mammal_lookup
 }
 
 #' Compatibility wrapper for spatial network downscaling
+#' @param palm_stack,mammal_stack Aligned species distribution rasters.
+#' @param min_palms,min_mammals Minimum local richness in each group.
+#' @inheritParams sbm_model
 #' @export
 downscale_networks <- function(palm_stack, mammal_stack, palm_lookup, mammal_lookup, theta,
                                species_col = "species", guild_col = "guild", min_palms = 1L, min_mammals = 1L) {

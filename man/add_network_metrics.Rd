@@ -6,6 +6,11 @@
 \usage{
 add_network_metrics(x, threshold = NULL)
 }
+\arguments{
+\item{x}{Network collection.}
+
+\item{threshold}{Optional probability threshold.}
+}
 \description{
 Add standard metrics to network collection
 }

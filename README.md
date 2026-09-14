@@ -86,3 +86,14 @@ devtools::document()
 devtools::test()
 devtools::check()
 ```
+
+The degree-constrained maximum-entropy backend is experimental: degree-preserving swaps satisfy the requested constraints but do not establish convergence to the target distribution.
+
+## Vignettes
+
+```r
+vignette("architecture", package = "metaweave")
+vignette("methods-and-simulation", package = "metaweave")
+vignette("maxent-backend", package = "metaweave")
+vignette("palm-mammal-workflow", package = "metaweave")
+```

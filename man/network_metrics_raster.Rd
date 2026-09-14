@@ -6,6 +6,11 @@
 \usage{
 network_metrics_raster(x, metrics = NULL)
 }
+\arguments{
+\item{x}{Network collection with metrics in its index.}
+
+\item{metrics}{Metric columns; inferred when omitted.}
+}
 \description{
 Compatibility alias returning metric rasters
 }

@@ -1,11 +1,13 @@
 Package: metaweave
 Title: Spatial Ecological Network Inference
-Version: 0.3.0
+Version: 0.4.0
 Authors@R: person("Gabriel", "Munoz", role = c("aut", "cre"), email = "gabriel.munoz@example.com")
+Author: Gabriel Munoz [aut, cre]
+Maintainer: Gabriel Munoz <gabriel.munoz@example.com>
 Description: A model-agnostic framework for reconstructing and analysing
     spatially explicit ecological networks from species distributions and
     ecological inference models. Supports arbitrary ecological groups and
-    includes a stochastic block model backend,
+    includes stochastic block and maximum-entropy inference backends,
     simulation helpers, network summaries, and spatial mapping utilities.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -23,5 +25,5 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-URL: https://github.com/fgabriel/metaweave
-BugReports: https://github.com/fgabriel/metaweave/issues
+URL: https://github.com/fgabriel1891/metaweave
+BugReports: https://github.com/fgabriel1891/metaweave/issues

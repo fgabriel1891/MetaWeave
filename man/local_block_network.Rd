@@ -17,6 +17,25 @@ local_block_network(
   cell_id = NA_integer_
 )
 }
+\arguments{
+\item{rows, columns}{Species names in each network group.}
+
+\item{row_lookup}{Data frame mapping species in the matrix rows to blocks.}
+
+\item{column_lookup}{Data frame mapping species in the matrix columns to blocks.}
+
+\item{theta}{Guild-by-guild probability matrix.}
+
+\item{row_group}{Name of the assemblage group placed in matrix rows.}
+
+\item{column_group}{Name of the assemblage group placed in matrix columns.}
+
+\item{species_col}{Species column in lookup tables.}
+
+\item{guild_col}{Guild column in lookup tables.}
+
+\item{cell_id}{Optional raster cell identifier.}
+}
 \description{
 Build one local generic block-model network directly
 }

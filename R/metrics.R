@@ -20,7 +20,9 @@ simulate_interaction_counts <- function(network, size = 100L, seed = NULL) {
 #' @export
 simulate_network <- function(network, size = 100L, seed = NULL) {
   new_ecological_network(simulate_interaction_counts(network, size, seed), "weighted", list(source = network),
-                         network$row_group, network$column_group)
+                         network$row_group, network$column_group,
+                         directed = isTRUE(network$directed),
+                         self_links = if (is.null(network$self_links)) NA else network$self_links)
 }
 
 #' Summarize one ecological network
@@ -61,6 +63,7 @@ rarefied_network_metric <- function(prob_mat, target_size = 100L, metric, n_per_
 }
 
 #' Add standard metrics to network collection
+#' @inheritParams summarize_networks
 #' @export
 add_network_metrics <- function(x, threshold = NULL) summarize_networks(x, threshold)
 
@@ -83,10 +86,12 @@ map_metrics <- function(x, metrics = NULL) {
 }
 
 #' Compatibility alias returning metric rasters
+#' @inheritParams map_metrics
 #' @export
 network_metrics_raster <- function(x, metrics = NULL) map_metrics(x, metrics)$data
 
 #' Complete compatibility workflow
+#' @param ... Arguments passed to `downscale_networks()`.
 #' @export
 run_network_downscaling <- function(...) {
   result <- add_network_metrics(downscale_networks(...))

@@ -9,7 +9,9 @@ new_ecological_network(
   type = c("probability", "binary", "weighted", "observed"),
   metadata = list(),
   row_group = "rows",
-  column_group = "columns"
+  column_group = "columns",
+  directed = FALSE,
+  self_links = NA
 )
 }
 \arguments{
@@ -18,6 +20,12 @@ new_ecological_network(
 \item{type}{One of probability, binary, weighted, or observed.}
 
 \item{metadata}{Optional metadata.}
+
+\item{row_group, column_group}{Ecological groups represented by rows and columns.}
+
+\item{directed}{Whether matrix orientation represents directed interactions.}
+
+\item{self_links}{Whether self-links are permitted; \code{NA} when not applicable.}
 }
 \description{
 Construct an ecological network

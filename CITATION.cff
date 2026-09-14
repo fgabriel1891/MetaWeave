@@ -1,10 +1,10 @@
 cff-version: 1.2.0
 message: "If you use MetaWeave, please cite it as below."
 title: "MetaWeave: Spatial Ecological Network Inference"
-version: 0.3.0
-date-released: 2026-08-01
+version: 0.4.0
+date-released: 2026-09-14
 authors:
   - family-names: Munoz
     given-names: Gabriel
-repository-code: "https://github.com/USERNAME/metaweave"
+repository-code: "https://github.com/fgabriel1891/metaweave"
 license: MIT

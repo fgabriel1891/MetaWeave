@@ -1,0 +1,401 @@
+---
+title: "MetaWeave: rationale, methods, and simulation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MetaWeave: rationale, methods, and simulation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+## Rationale
+
+Species distributions tell us which interactions are possible in a place, but
+not which interactions are likely. A regional interaction model tells us which
+species may interact, but not where they co-occur. MetaWeave combines these two
+sources of information to reconstruct local ecological networks.
+
+The package separates three questions:
+
+1. **Where are species present?** Distribution layers define local assemblages.
+2. **How are co-occurring species connected?** An inference model assigns
+   interaction probabilities.
+3. **What might an observed sample look like?** Simulation converts a
+   probability network into interaction counts.
+
+This separation allows the ecological model to change without rewriting the
+spatial workflow.
+
+## Core workflow
+
+MetaWeave uses a small set of objects and transformations:
+
+| Object | Meaning |
+|---|---|
+| `distribution_collection` | Named spatial distributions for one group |
+| `assemblage` | Species co-occurring in one spatial unit |
+| `inference_model` | Rule for assigning interactions |
+| `ecological_network` | Local interaction matrix and its meaning |
+| `network_collection` | Local networks linked to spatial cells |
+| `spatial_result` | Network summaries mapped back to geography |
+
+The main pipeline is:
+
+```text
+distributions -> assemblages -> inference model -> local networks
+              -> summaries -> spatial rasters
+```
+
+## Inference methods
+
+MetaWeave currently provides two general inference backends.
+
+### Block model
+
+`block_model()` assumes that species belong to ecological groups or latent
+blocks. The probability of interaction between species (i) and (j) is
+
+\[
+P(Y_{ij}=1)=\Theta_{z_i,z_j},
+\]
+
+where (z_i) and (z_j) are their block memberships and \(\Theta\) is the
+block-to-block probability matrix. Memberships and \(\Theta\) may come from an
+external stochastic block model, expert-defined guilds, or another grouping
+method.
+
+### Species probability matrix
+
+`probability_matrix_model()` accepts a named species-by-species probability
+matrix directly. This is useful for trait models, machine-learning predictions,
+Bayesian posterior means, or ensemble predictions that do not correspond to one
+block partition.
+
+Both methods return the same network class, so simulation, summaries, and maps
+are shared.
+
+## Simulated example
+
+The following example creates a small landscape with six producer species and
+five consumer species. The distributions are artificial, so the full analysis
+is reproducible without external data.
+
+```{r libraries}
+library(metaweave)
+library(terra)
+
+set.seed(42)
+```
+
+### Create a landscape and distributions
+
+```{r distributions}
+grid <- create_standard_grid(
+  extent = c(0, 6, 0, 4),
+  resolution = 1,
+  crs = "EPSG:4326"
+)
+
+make_range <- function(template, center_x, center_y, spread) {
+  xy <- terra::crds(template)
+  distance <- sqrt(
+    (xy[, 1] - center_x)^2 +
+      (xy[, 2] - center_y)^2
+  )
+
+  layer <- terra::rast(template)
+  terra::values(layer) <- ifelse(distance <= spread, 1, NA)
+  layer
+}
+
+producer_parameters <- data.frame(
+  species = paste0("producer_", 1:6),
+  x = c(1.0, 2.0, 3.0, 4.0, 5.0, 3.0),
+  y = c(1.0, 3.0, 2.0, 3.0, 1.0, 3.5),
+  spread = c(2.0, 2.2, 1.8, 2.0, 1.8, 2.4)
+)
+
+consumer_parameters <- data.frame(
+  species = paste0("consumer_", 1:5),
+  x = c(1.5, 2.5, 4.0, 5.0, 3.0),
+  y = c(2.5, 1.0, 2.0, 3.0, 3.5),
+  spread = c(2.0, 1.8, 2.2, 1.8, 2.4)
+)
+
+producers <- terra::rast(lapply(seq_len(nrow(producer_parameters)), function(i) {
+  make_range(
+    grid,
+    producer_parameters$x[i],
+    producer_parameters$y[i],
+    producer_parameters$spread[i]
+  )
+}))
+names(producers) <- producer_parameters$species
+
+consumers <- terra::rast(lapply(seq_len(nrow(consumer_parameters)), function(i) {
+  make_range(
+    grid,
+    consumer_parameters$x[i],
+    consumer_parameters$y[i],
+    consumer_parameters$spread[i]
+  )
+}))
+names(consumers) <- consumer_parameters$species
+```
+
+Each raster layer represents one species. A value of `1` means presence and
+`NA` means absence.
+
+### Define a block-level interaction model
+
+Producers and consumers are assigned to two blocks. The matrix `theta` states
+that matching blocks interact more strongly than mismatched blocks.
+
+```{r block-model}
+producer_lookup <- data.frame(
+  species = names(producers),
+  guild = rep(c("producer_A", "producer_B"), each = 3)
+)
+
+consumer_lookup <- data.frame(
+  species = names(consumers),
+  guild = c("consumer_A", "consumer_A", "consumer_B",
+            "consumer_B", "consumer_B")
+)
+
+theta <- matrix(
+  c(
+    0.80, 0.20,
+    0.25, 0.75
+  ),
+  nrow = 2,
+  byrow = TRUE,
+  dimnames = list(
+    c("producer_A", "producer_B"),
+    c("consumer_A", "consumer_B")
+  )
+)
+
+model <- block_model(
+  row_lookup = producer_lookup,
+  column_lookup = consumer_lookup,
+  theta = theta,
+  row_group = "producers",
+  column_group = "consumers"
+)
+```
+
+### Reconstruct local networks
+
+`run_spatial_inference()` finds local assemblages, infers their networks,
+calculates summaries, and maps those summaries to the original grid.
+
+```{r inference}
+result <- run_spatial_inference(
+  distributions = list(
+    producers = producers,
+    consumers = consumers
+  ),
+  model = model,
+  min_species = 1
+)
+
+head(result$result$index)
+```
+
+The standard summaries are:
+
+- `row_richness` and `column_richness`: local species richness;
+- `possible_links`: number of co-occurring species pairs;
+- `expected_links`: sum of their interaction probabilities; and
+- `mean_probability`: average probability across possible pairs.
+
+```{r maps, fig.show='hold'}
+plot(
+  result$spatial$data[[
+    c("row_richness", "column_richness", "expected_links")
+  ]],
+  main = c(
+    "Producer richness",
+    "Consumer richness",
+    "Expected links"
+  )
+)
+```
+
+Spatial variation emerges from both species turnover and the interaction model.
+Two cells with equal richness can have different expected links if their species
+belong to different blocks.
+
+## Simulating interaction observations
+
+A probability network describes ecological expectation. Field data are finite
+samples from that expectation. `simulate_interaction_counts()` distributes a
+fixed number of interaction events among species pairs in proportion to their
+inferred probabilities.
+
+We select the local network with the largest number of possible links.
+
+```{r focal-network}
+focal_id <- which.max(result$result$index$possible_links)
+focal_network <- result$result$networks[[focal_id]]
+
+round(focal_network$matrix, 2)
+```
+
+Simulate a small and a large survey:
+
+```{r sampling}
+counts_50 <- simulate_interaction_counts(
+  focal_network,
+  size = 50,
+  seed = 1
+)
+
+counts_500 <- simulate_interaction_counts(
+  focal_network,
+  size = 500,
+  seed = 1
+)
+
+sum(counts_50)
+sum(counts_500)
+```
+
+Larger samples usually represent the underlying relative interaction weights
+more closely. We can demonstrate this across repeated simulations.
+
+```{r simulation-analysis}
+target <- focal_network$matrix / sum(focal_network$matrix)
+
+sampling_error <- function(sample_size, replicates = 100) {
+  errors <- vapply(seq_len(replicates), function(i) {
+    observed <- simulate_interaction_counts(
+      focal_network,
+      size = sample_size,
+      seed = 1000 + i
+    )
+    observed <- observed / sum(observed)
+    mean(abs(observed - target))
+  }, numeric(1))
+
+  data.frame(
+    sample_size = sample_size,
+    mean_absolute_error = mean(errors),
+    error_sd = stats::sd(errors)
+  )
+}
+
+simulation_results <- do.call(
+  rbind,
+  lapply(c(25, 50, 100, 250, 500), sampling_error)
+)
+
+simulation_results
+
+plot(
+  simulation_results$sample_size,
+  simulation_results$mean_absolute_error,
+  type = "b",
+  log = "x",
+  xlab = "Number of sampled interactions",
+  ylab = "Mean absolute error"
+)
+```
+
+This analysis measures sampling error, not whether the inference model is
+biologically correct. Increasing sample size reduces observation noise but does
+not correct a misspecified interaction model.
+
+## Standardizing a network metric
+
+Networks sampled with different effort are difficult to compare. One simple
+approach is to simulate each network at the same sample size and then calculate
+a metric. Here we use observed connectance.
+
+```{r standardized-metric}
+observed_connectance <- function(count_matrix) {
+  sum(count_matrix > 0) / length(count_matrix)
+}
+
+connectance_100 <- rarefied_network_metric(
+  prob_mat = focal_network$matrix,
+  target_size = 100,
+  metric = observed_connectance,
+  n_per_level = 100,
+  seed = 99
+)
+
+connectance_100
+```
+
+This value is the average connectance expected after 100 sampled interaction
+events. The same procedure can be applied to every local network or replaced by
+a specialist rarefaction method.
+
+## Using a species-level probability matrix
+
+Some models return probabilities for individual species pairs rather than a
+single block partition. MetaWeave accepts these predictions directly.
+
+```{r probability-model}
+species_probabilities <- theta[
+  producer_lookup$guild,
+  consumer_lookup$guild,
+  drop = FALSE
+]
+
+dimnames(species_probabilities) <- list(
+  producer_lookup$species,
+  consumer_lookup$species
+)
+
+matrix_model <- probability_matrix_model(
+  probability_matrix = species_probabilities,
+  row_group = "producers",
+  column_group = "consumers",
+  name = "species-level predictions"
+)
+
+matrix_result <- run_spatial_inference(
+  distributions = list(
+    producers = producers,
+    consumers = consumers
+  ),
+  model = matrix_model,
+  min_species = 1
+)
+```
+
+Because this example expands the same block model, its results match the block
+backend. In practice, the matrix could contain ensemble, trait-based, or
+machine-learning predictions.
+
+## Interpretation and limits
+
+MetaWeave reconstructs plausible local networks conditional on its inputs. A
+predicted link is not a confirmed observation. Results inherit uncertainty and
+bias from:
+
+- species distributions and their spatial resolution;
+- incomplete regional interaction data;
+- the chosen inference model and fitted parameters; and
+- variation in sampling effort.
+
+The current simulation functions represent finite sampling from a fixed local
+probability matrix. They do not yet propagate uncertainty in species ranges,
+block membership, model parameters, or environmental responses. Those sources
+should be handled through repeated model inputs or future uncertainty-aware
+backends.
+
+The main value of MetaWeave is therefore comparative and modular: the same
+spatial assemblages can be evaluated under different ecological hypotheses,
+and their consequences can be compared across space using a shared workflow.

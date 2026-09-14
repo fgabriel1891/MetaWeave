@@ -6,6 +6,9 @@
 \usage{
 run_network_downscaling(...)
 }
+\arguments{
+\item{...}{Arguments passed to \code{downscale_networks()}.}
+}
 \description{
 Complete compatibility workflow
 }

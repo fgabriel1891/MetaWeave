@@ -15,6 +15,21 @@ prepare_range_stacks(
   touches = TRUE
 )
 }
+\arguments{
+\item{palm_source, mammal_source}{Range sources accepted by \code{build_range_stack()}.}
+
+\item{mammal_species_col}{Species-name column in the mammal source.}
+
+\item{mammal_species_keep}{Optional mammal species subset.}
+
+\item{template}{Raster template.}
+
+\item{region}{Optional crop region.}
+
+\item{output_dir}{Optional directory in which to save the range stacks.}
+
+\item{touches}{Count all touched cells.}
+}
 \description{
 Prepare palm and mammal range stacks
 }

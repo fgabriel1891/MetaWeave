@@ -16,6 +16,19 @@ downscale_networks(
   min_mammals = 1L
 )
 }
+\arguments{
+\item{palm_stack, mammal_stack}{Aligned species distribution rasters.}
+
+\item{palm_lookup, mammal_lookup}{Species-to-guild lookup tables.}
+
+\item{theta}{Guild-by-guild probability matrix.}
+
+\item{species_col}{Species column in lookup tables.}
+
+\item{guild_col}{Guild column in lookup tables.}
+
+\item{min_palms, min_mammals}{Minimum local richness in each group.}
+}
 \description{
 Compatibility wrapper for spatial network downscaling
 }

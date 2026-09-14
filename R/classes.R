@@ -56,21 +56,29 @@ print.inference_model <- function(x, ...) {
 #' @param matrix Numeric interaction matrix.
 #' @param type One of probability, binary, weighted, or observed.
 #' @param metadata Optional metadata.
+#' @param row_group,column_group Ecological groups represented by rows and columns.
+#' @param directed Whether matrix orientation represents directed interactions.
+#' @param self_links Whether self-links are permitted; `NA` when not applicable.
 #' @export
 new_ecological_network <- function(matrix, type = c("probability", "binary", "weighted", "observed"), metadata = list(),
-                                   row_group = "rows", column_group = "columns") {
+                                   row_group = "rows", column_group = "columns",
+                                   directed = FALSE, self_links = NA) {
   type <- match.arg(type)
   if (!is.matrix(matrix) || !is.numeric(matrix)) stop("`matrix` must be a numeric matrix.")
   if (type == "probability" && any(matrix < 0 | matrix > 1, na.rm = TRUE)) stop("Probabilities must lie in [0, 1].")
+  if (!is.logical(directed) || length(directed) != 1L || is.na(directed)) stop("`directed` must be TRUE or FALSE.")
+  if (!is.logical(self_links) || length(self_links) != 1L) stop("`self_links` must be TRUE, FALSE, or NA.")
   structure(list(matrix = matrix, type = type, metadata = metadata,
-                 row_group = as.character(row_group), column_group = as.character(column_group)),
+                 row_group = as.character(row_group), column_group = as.character(column_group),
+                 directed = directed, self_links = self_links),
             class = c(paste0(type, "_network"), "ecological_network"))
 }
 
 #' @export
 print.ecological_network <- function(x, ...) {
   cat("<ecological_network:", x$type, ">", nrow(x$matrix), x$row_group,
-      "x", ncol(x$matrix), x$column_group, "\n")
+      "x", ncol(x$matrix), x$column_group,
+      if (isTRUE(x$directed)) "directed" else "undirected", "\n")
   invisible(x)
 }
 

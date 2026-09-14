@@ -13,8 +13,8 @@ and map the results.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/USERNAME/metaweave}
-  \item Report bugs at \url{https://github.com/USERNAME/metaweave/issues}
+  \item \url{https://github.com/fgabriel1891/metaweave}
+  \item Report bugs at \url{https://github.com/fgabriel1891/metaweave/issues}
 }
 
 }
