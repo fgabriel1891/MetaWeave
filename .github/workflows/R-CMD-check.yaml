@@ -25,8 +25,14 @@ jobs:
           use-public-rspm: true
       - uses: r-lib/actions/setup-pandoc@v2
       - uses: r-lib/actions/setup-tinytex@v2
-      - name: Install fonts required by the R reference manual
-        run: tlmgr install courier helvetic times inconsolata
+      - name: Install tools required by the R reference manual
+        run: tlmgr install courier helvetic times inconsolata makeindex
+      - name: Verify manual build tools
+        shell: Rscript {0}
+        run: |
+          commands <- Sys.which(c("pdflatex", "makeindex"))
+          print(commands)
+          stopifnot(all(nzchar(commands)))
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
