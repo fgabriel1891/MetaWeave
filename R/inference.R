@@ -1,6 +1,7 @@
 #' Infer a network for one assemblage
 #' @param assemblage An assemblage.
 #' @param model An inference model.
+#' @return The `ecological_network` returned by the model prediction function.
 #' @export
 infer_network <- function(assemblage, model) {
   if (!inherits(assemblage, "assemblage")) stop("`assemblage` must be an assemblage.")
@@ -14,6 +15,7 @@ infer_network <- function(assemblage, model) {
 #' @param assemblages List of assemblages.
 #' @param model Inference model.
 #' @param template Optional spatial template.
+#' @return A `network_collection` containing one network per assemblage and an index with `cell_id`, `x`, and `y` columns.
 #' @export
 infer_networks <- function(assemblages, model, template = NULL) {
   nets <- lapply(assemblages, infer_network, model = model)
@@ -36,6 +38,7 @@ infer_networks <- function(assemblages, model, template = NULL) {
 #' @param distributions Named list of aligned distribution rasters or collections.
 #' @param model Inference model whose group names match `distributions`.
 #' @param min_species Minimum number of locally present species required in every group.
+#' @return A `network_collection` of locally inferred networks with a spatial template and cell index.
 #' @export
 reconstruct_networks <- function(distributions, model, min_species = 1L) {
   if (!is.list(distributions) || !length(distributions)) stop("`distributions` must be a non-empty named list.")
@@ -56,6 +59,12 @@ reconstruct_networks <- function(distributions, model, min_species = 1L) {
 #' @param row_group Assemblage group corresponding to matrix rows.
 #' @param column_group Assemblage group corresponding to matrix columns.
 #' @param name Descriptive model name stored in outputs.
+#' @return An `inference_model` with subclass `probability_matrix_model`. Prediction subsets the supplied matrix to locally present, matched species.
+#' @examples
+#' p <- matrix(c(0.8, 0.3), 2, dimnames = list(c("a", "b"), "x"))
+#' model <- probability_matrix_model(p, "plants", "animals")
+#' site <- new_assemblage(list(plants = "a", animals = "x"))
+#' infer_network(site, model)$matrix
 #' @export
 probability_matrix_model <- function(probability_matrix, row_group, column_group,
                                      name = "species probability matrix") {
@@ -122,6 +131,7 @@ probability_matrix_model <- function(probability_matrix, row_group, column_group
 #' @param column_group Name of the assemblage group placed in matrix columns.
 #' @param species_col Species column in lookup tables.
 #' @param guild_col Guild column in lookup tables.
+#' @return An `inference_model` with subclass `block_model`. Prediction returns a probability network using the supplied block assignments and probabilities; no model fitting is performed.
 #' @export
 block_model <- function(row_lookup, column_lookup, theta, row_group, column_group,
                         species_col = "species", guild_col = "guild") {
@@ -171,6 +181,7 @@ block_model <- function(row_lookup, column_lookup, theta, row_group, column_grou
 #' @description Compatibility wrapper around `block_model()`.
 #' @param palm_lookup,mammal_lookup Species-to-guild lookup tables.
 #' @inheritParams block_model
+#' @return A block-model `inference_model` using group names `palms` and `mammals`.
 #' @export
 sbm_model <- function(palm_lookup, mammal_lookup, theta, species_col = "species", guild_col = "guild") {
   block_model(palm_lookup, mammal_lookup, theta, "palms", "mammals", species_col, guild_col)
@@ -180,6 +191,7 @@ sbm_model <- function(palm_lookup, mammal_lookup, theta, species_col = "species"
 #' @param rows,columns Species names in each network group.
 #' @param cell_id Optional raster cell identifier.
 #' @inheritParams block_model
+#' @return A numeric probability matrix with species row and column names.
 #' @export
 local_block_network <- function(rows, columns, row_lookup, column_lookup, theta,
                                 row_group = "rows", column_group = "columns",
@@ -195,6 +207,7 @@ local_block_network <- function(rows, columns, row_lookup, column_lookup, theta,
 #' @param palms,mammals Species names in each network group.
 #' @param cell_id Optional raster cell identifier.
 #' @inheritParams sbm_model
+#' @return A numeric palm-by-mammal probability matrix.
 #' @export
 local_probability_network <- function(palms, mammals, palm_lookup, mammal_lookup, theta,
                                       species_col = "species", guild_col = "guild", cell_id = NA_integer_) {
@@ -206,6 +219,7 @@ local_probability_network <- function(palms, mammals, palm_lookup, mammal_lookup
 #' @param palm_stack,mammal_stack Aligned species distribution rasters.
 #' @param min_palms,min_mammals Minimum local richness in each group.
 #' @inheritParams sbm_model
+#' @return A `network_collection` with local probability networks, cell index, and raster template.
 #' @export
 downscale_networks <- function(palm_stack, mammal_stack, palm_lookup, mammal_lookup, theta,
                                species_col = "species", guild_col = "guild", min_palms = 1L, min_mammals = 1L) {

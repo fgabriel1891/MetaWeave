@@ -2,6 +2,7 @@ on:
   push:
     branches: [main, master]
   pull_request:
+  workflow_dispatch:
 
 name: R-CMD-check
 
@@ -13,6 +14,7 @@ jobs:
       matrix:
         config:
           - {os: ubuntu-latest, r: 'release'}
+          - {os: ubuntu-latest, r: 'devel'}
           - {os: windows-latest, r: 'release'}
           - {os: macos-latest, r: 'release'}
     steps:
@@ -21,9 +23,24 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-tinytex@v2
+      - name: Install tools required by the R reference manual
+        run: tlmgr install courier helvetic times inconsolata makeindex
+      - name: Verify manual build tools
+        shell: Rscript {0}
+        run: |
+          commands <- Sys.which(c("pdflatex", "makeindex"))
+          print(commands)
+          stopifnot(all(nzchar(commands)))
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
           needs: check
       - uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--as-cran")'
+          build_args: 'character()'
+          upload-results: 'true'
+
 

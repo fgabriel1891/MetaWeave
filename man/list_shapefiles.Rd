@@ -11,6 +11,9 @@ list_shapefiles(path, recursive = FALSE)
 
 \item{recursive}{Search recursively.}
 }
+\value{
+A character vector of shapefile paths, empty if no matches are found.
+}
 \description{
 List ESRI shapefiles
 }

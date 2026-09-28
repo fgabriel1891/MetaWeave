@@ -27,6 +27,9 @@ new_ecological_network(
 
 \item{self_links}{Whether self-links are permitted; \code{NA} when not applicable.}
 }
+\value{
+An \code{ecological_network} list with \code{matrix}, \code{type}, \code{metadata}, \code{row_group}, \code{column_group}, \code{directed}, and \code{self_links}; also inherits from the type-specific network class.
+}
 \description{
 Construct an ecological network
 }

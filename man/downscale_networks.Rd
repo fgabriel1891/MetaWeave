@@ -29,6 +29,9 @@ downscale_networks(
 
 \item{min_palms, min_mammals}{Minimum local richness in each group.}
 }
+\value{
+A \code{network_collection} with local probability networks, cell index, and raster template.
+}
 \description{
 Compatibility wrapper for spatial network downscaling
 }

@@ -23,6 +23,9 @@ rarefied_network_metric(
 
 \item{seed}{Optional seed.}
 }
+\value{
+A numeric mean of the supplied metric across simulated count matrices, with missing metric values omitted.
+}
 \description{
 Simulates a standardized count matrix and evaluates a user-supplied metric function.
 }

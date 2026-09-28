@@ -11,6 +11,9 @@ assemble_communities(distributions, min_species = 1L)
 
 \item{min_species}{Minimum species per group.}
 }
+\value{
+A list of \code{assemblage} objects, one per cell meeting \code{min_species} in every group. Nonzero, nonmissing raster values indicate presence; the list is empty if no cell qualifies.
+}
 \description{
 Assemble local communities from aligned distribution rasters
 }

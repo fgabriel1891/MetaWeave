@@ -29,6 +29,9 @@ block_model(
 
 \item{guild_col}{Guild column in lookup tables.}
 }
+\value{
+An \code{inference_model} with subclass \code{block_model}. Prediction returns a probability network using the supplied block assignments and probabilities; no model fitting is performed.
+}
 \description{
 Construct a generic stochastic block model backend
 }

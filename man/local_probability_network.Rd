@@ -28,6 +28,9 @@ local_probability_network(
 
 \item{cell_id}{Optional raster cell identifier.}
 }
+\value{
+A numeric palm-by-mammal probability matrix.
+}
 \description{
 Compatibility wrapper around \code{local_block_network()}.
 }

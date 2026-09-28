@@ -3,6 +3,7 @@
 #' @param data A named `terra::SpatRaster` whose layers represent species.
 #' @param guild Optional guild label for the collection.
 #' @param metadata Optional species metadata data frame.
+#' @return A `distribution_collection` list with `data` (the raster), `guild`, and `metadata`.
 #' @export
 new_distribution_collection <- function(data, guild = NULL, metadata = NULL) {
   if (!inherits(data, "SpatRaster")) stop("`data` must be a SpatRaster.")
@@ -20,6 +21,9 @@ print.distribution_collection <- function(x, ...) {
 #' @param species Named list of character vectors, one per ecological group.
 #' @param cell_id Optional raster cell identifier.
 #' @param coordinates Optional named numeric vector containing x and y.
+#' @return An `assemblage` list with `species`, `cell_id`, and `coordinates`.
+#' @examples
+#' new_assemblage(list(plants = c("a", "b"), animals = "x"), cell_id = 1)
 #' @export
 new_assemblage <- function(species, cell_id = NA_integer_, coordinates = NULL) {
   if (!is.list(species) || is.null(names(species))) stop("`species` must be a named list.")
@@ -39,6 +43,7 @@ print.assemblage <- function(x, ...) {
 #' @param name Model name.
 #' @param parameters Model-specific parameters.
 #' @param subclass Optional additional class name.
+#' @return An `inference_model` list containing `name`, `predict`, and `parameters`, with the optional subclass prepended.
 #' @export
 new_inference_model <- function(predict, name = "custom", parameters = list(), subclass = NULL) {
   if (!is.function(predict)) stop("`predict` must be a function.")
@@ -59,6 +64,7 @@ print.inference_model <- function(x, ...) {
 #' @param row_group,column_group Ecological groups represented by rows and columns.
 #' @param directed Whether matrix orientation represents directed interactions.
 #' @param self_links Whether self-links are permitted; `NA` when not applicable.
+#' @return An `ecological_network` list with `matrix`, `type`, `metadata`, `row_group`, `column_group`, `directed`, and `self_links`; also inherits from the type-specific network class.
 #' @export
 new_ecological_network <- function(matrix, type = c("probability", "binary", "weighted", "observed"), metadata = list(),
                                    row_group = "rows", column_group = "columns",
@@ -87,6 +93,7 @@ print.ecological_network <- function(x, ...) {
 #' @param index Cell-level data frame.
 #' @param template Spatial raster template.
 #' @param settings Optional workflow settings.
+#' @return A `network_collection` list with `networks`, `index`, `template`, and `settings`. Each index row corresponds to one network.
 #' @export
 new_network_collection <- function(networks, index, template = NULL, settings = list()) {
   if (!is.list(networks) || !is.data.frame(index) || length(networks) != nrow(index)) {
@@ -105,6 +112,7 @@ print.network_collection <- function(x, ...) {
 #' Construct a spatial result
 #' @param data A spatial object.
 #' @param metrics Names of mapped metrics.
+#' @return A `spatial_result` list with the spatial object in `data` and metric names in `metrics`.
 #' @export
 new_spatial_result <- function(data, metrics = names(data)) {
   structure(list(data = data, metrics = metrics), class = "spatial_result")

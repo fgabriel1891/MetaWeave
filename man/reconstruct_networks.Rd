@@ -13,6 +13,9 @@ reconstruct_networks(distributions, model, min_species = 1L)
 
 \item{min_species}{Minimum number of locally present species required in every group.}
 }
+\value{
+A \code{network_collection} of locally inferred networks with a spatial template and cell index.
+}
 \description{
 Reconstruct spatial networks from arbitrary distribution groups
 }

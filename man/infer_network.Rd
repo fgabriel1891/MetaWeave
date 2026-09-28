@@ -11,6 +11,9 @@ infer_network(assemblage, model)
 
 \item{model}{An inference model.}
 }
+\value{
+The \code{ecological_network} returned by the model prediction function.
+}
 \description{
 Infer a network for one assemblage
 }

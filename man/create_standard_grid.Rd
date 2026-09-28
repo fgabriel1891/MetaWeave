@@ -17,6 +17,12 @@ create_standard_grid(
 
 \item{crs}{Coordinate reference system.}
 }
+\value{
+A \code{terra::SpatRaster} with the requested extent, resolution, and coordinate reference system.
+}
 \description{
 Create a standard raster grid
+}
+\examples{
+create_standard_grid(c(0, 2, 0, 2), resolution = 1)
 }

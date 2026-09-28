@@ -19,7 +19,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Gabriel Munoz \email{gabriel.munoz@example.com}
+\strong{Maintainer}: Gabriel Munoz \email{gmunozacevedo@proton.me} (Affiliation: Concordia University) [copyright holder]
+
+Authors:
+\itemize{
+  \item Gabriel Munoz \email{gmunozacevedo@proton.me} (Affiliation: Concordia University) [copyright holder]
+}
 
 }
 \keyword{internal}

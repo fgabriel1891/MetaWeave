@@ -11,6 +11,25 @@ summarize_network(network, threshold = NULL)
 
 \item{threshold}{Optional threshold for realized links.}
 }
+\value{
+A one-row data frame with \code{row_richness}, \code{column_richness},
+\code{possible_links} (number of eligible matrix entries), \code{expected_links}
+(sum of eligible entries, or number at least \code{threshold}), and
+\code{mean_probability} (mean of eligible nonmissing entries).
+For networks with \code{self_links = FALSE}, pairs with the same species name
+are excluded. Unnamed same-group square networks use the diagonal;
+unnamed networks across different groups require species names.
+Other inputs use all matrix entries, including missing entries in the
+possible-link count. Missing values are omitted from sums and means.
+Without eligible entries the mean is \code{NA}; if all are missing it is \code{NaN}.
+For weighted/observed networks these fields summarize weights, not
+link probabilities; use \code{threshold} to count entries at or above a cutoff.
+}
 \description{
 Summarize one ecological network
+}
+\examples{
+p <- matrix(c(0.8, 0.3), 2)
+summarize_network(p)
+summarize_network(p, threshold = 0.5)
 }

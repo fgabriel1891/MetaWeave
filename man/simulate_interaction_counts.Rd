@@ -13,6 +13,9 @@ simulate_interaction_counts(network, size = 100L, seed = NULL)
 
 \item{seed}{Optional random seed.}
 }
+\value{
+An integer matrix with the input dimensions and names. Counts sum to \code{size} when positive probability mass exists; otherwise all entries are zero.
+}
 \description{
 Simulate an interaction-count matrix
 }

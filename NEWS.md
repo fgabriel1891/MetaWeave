@@ -1,3 +1,12 @@
+# metaweave 0.4.1
+
+* Prepare the first CRAN submission with updated maintainer metadata.
+* Replace publication vignettes with one self-contained spatial tutorial.
+* Exclude repository website files from the source archive.
+* Document returned objects for public workflow functions.
+* Summaries exclude forbidden self-links when self_links = FALSE, using
+  species identity. Unrestricted networks and plain matrices are unchanged.
+
 # metaweave 0.4.0
 
 * Adds `maxent_model()` for directed maximum-entropy ensembles constrained by connectance, link count, or degree sequences.

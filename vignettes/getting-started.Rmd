@@ -1,0 +1,98 @@
+---
+title: "Getting started with metaweave"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with metaweave}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`metaweave` combines species distributions with an interaction model to infer
+local ecological networks. This tutorial uses invented species and probabilities;
+no downloads or external data files are needed. In a real study, the probabilities
+could come from an independently fitted model or expert knowledge. They are
+inputs here, not quantities estimated from the presence data.
+
+## Define interaction probabilities
+
+Rows represent plants and columns represent animals. An entry of 0.8 means an
+80% modelled probability of interaction when both species are present. It is
+neither an observed interaction count nor a species occurrence probability.
+
+```{r}
+library(metaweave)
+probabilities <- matrix(
+  c(0.8, 0.2, 0.3, 0.7), nrow = 2, byrow = TRUE,
+  dimnames = list(c("plant_a", "plant_b"), c("animal_x", "animal_y"))
+)
+model <- probability_matrix_model(probabilities, "plants", "animals")
+```
+
+## Infer one local network
+
+An assemblage lists species present at one location. Group names must match
+those supplied to the model. This model selects relevant rows and columns from
+the supplied matrix; it does not refit the probabilities locally.
+
+```{r}
+site <- new_assemblage(list(plants = c("plant_a", "plant_b"),
+                            animals = "animal_x"))
+network <- infer_network(site, model)
+network$matrix
+summarize_network(network)
+```
+
+There are two possible plant-animal pairs. Their probabilities sum to 1.1,
+the expected number of links. An expectation can be fractional: it describes an
+average over possible outcomes, rather than a count of observed interactions.
+
+## Apply the model across a small landscape
+
+Each raster layer represents one species and each cell represents one location.
+Nonzero values indicate presence; zero or missing values indicate absence.
+All groups must share the same grid and coordinate reference system. Species
+layer names must match the interaction matrix.
+
+```{r}
+grid <- create_standard_grid(c(0, 2, 0, 2), resolution = 1)
+plants <- terra::rast(list(grid, grid))
+animals <- terra::rast(list(grid, grid))
+names(plants) <- rownames(probabilities)
+names(animals) <- colnames(probabilities)
+terra::values(plants) <- cbind(c(1, 1, 0, 1), c(1, 0, 1, 1))
+terra::values(animals) <- cbind(c(1, 1, 1, 0), c(0, 1, 1, 1))
+result <- run_spatial_inference(
+  distributions = list(plants = plants, animals = animals),
+  model = model, min_species = 1
+)
+result$result$index
+```
+
+The workflow identifies local species, infers their networks, summarizes each
+network and maps the summaries to the original grid. `min_species = 1` retains
+cells with at least one species in each group. The index contains cell IDs,
+coordinates and summaries. Individual networks are in `result$result$networks`.
+
+```{r map, fig.width=5, fig.height=4}
+terra::plot(result$spatial$data[["expected_links"]], main = "Expected links per cell")
+```
+
+This map shows expected link counts under the supplied probabilities and presence
+data. It does not show observed interactions or uncertainty intervals.
+
+## Other models
+
+- `block_model()` uses supplied probabilities between species blocks.
+- `maxent_model()` generates directed network ensembles subject to link-count or
+  degree constraints. Its help page explains assumptions and sampling limits.
+- `new_inference_model()` connects a custom prediction function to the workflow.
+- `simulate_interaction_counts()` allocates a fixed total of counts in proportion
+  to matrix entries. These counts are not independent binary links.
+
+See function help pages for inputs and returned objects. Use
+`citation("metaweave")` for the software citation.
+

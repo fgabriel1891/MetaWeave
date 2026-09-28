@@ -15,6 +15,9 @@ new_network_collection(networks, index, template = NULL, settings = list())
 
 \item{settings}{Optional workflow settings.}
 }
+\value{
+A \code{network_collection} list with \code{networks}, \code{index}, \code{template}, and \code{settings}. Each index row corresponds to one network.
+}
 \description{
 Construct a collection of spatial ecological networks
 }

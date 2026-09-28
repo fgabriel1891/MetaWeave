@@ -21,6 +21,9 @@ sbm_model(
 
 \item{guild_col}{Guild column in lookup tables.}
 }
+\value{
+A block-model \code{inference_model} using group names \code{palms} and \code{mammals}.
+}
 \description{
 Compatibility wrapper around \code{block_model()}.
 }

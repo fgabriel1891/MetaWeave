@@ -13,6 +13,9 @@ simulate_network(network, size = 100L, seed = NULL)
 
 \item{seed}{Optional seed.}
 }
+\value{
+A weighted \code{ecological_network} containing simulated interaction counts and the source network in its metadata.
+}
 \description{
 Simulate a network
 }

@@ -11,6 +11,9 @@ add_network_metrics(x, threshold = NULL)
 
 \item{threshold}{Optional probability threshold.}
 }
+\value{
+A \code{network_collection} with summary columns appended to \code{index}; see \code{\link[=summarize_networks]{summarize_networks()}}.
+}
 \description{
 Add standard metrics to network collection
 }

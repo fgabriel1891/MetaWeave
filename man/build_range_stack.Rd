@@ -26,6 +26,9 @@ build_range_stack(
 
 \item{touches}{Count all touched cells.}
 }
+\value{
+A \code{terra::SpatRaster} with named species layers, optionally cropped and filtered to the region.
+}
 \description{
 Build a species range stack
 }

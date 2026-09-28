@@ -11,6 +11,9 @@ map_metrics(x, metrics = NULL)
 
 \item{metrics}{Metric columns; inferred when omitted.}
 }
+\value{
+A \code{spatial_result} with a multilayer \code{terra::SpatRaster} in \code{data}, one layer per requested metric, and metric names in \code{metrics}.
+}
 \description{
 Map cell metrics back to rasters
 }
