@@ -36,6 +36,9 @@ local_block_network(
 
 \item{cell_id}{Optional raster cell identifier.}
 }
+\value{
+A numeric probability matrix with species row and column names.
+}
 \description{
 Build one local generic block-model network directly
 }

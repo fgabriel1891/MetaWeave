@@ -13,6 +13,13 @@ interaction_table_to_matrix(data, row_col, column_col, value_col, fill = 0)
 
 \item{fill}{Missing-pair value.}
 }
+\value{
+A numeric matrix with row and column species names. Unspecified pairs receive \code{fill}; repeated pairs use the last supplied value.
+}
 \description{
 Convert an interaction table to a matrix
+}
+\examples{
+records <- data.frame(plant = c("a", "b"), animal = c("x", "x"), p = c(0.8, 0.3))
+interaction_table_to_matrix(records, "plant", "animal", "p")
 }

@@ -11,6 +11,9 @@ make_bbox(extent, crs = "EPSG:4326")
 
 \item{crs}{Coordinate reference system.}
 }
+\value{
+A polygon \code{terra::SpatVector} representing the bounding box.
+}
 \description{
 Create a bounding-box polygon
 }

@@ -11,6 +11,9 @@ network_metrics_raster(x, metrics = NULL)
 
 \item{metrics}{Metric columns; inferred when omitted.}
 }
+\value{
+A \code{terra::SpatRaster} with one layer per requested metric.
+}
 \description{
 Compatibility alias returning metric rasters
 }

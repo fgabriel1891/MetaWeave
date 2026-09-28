@@ -30,6 +30,9 @@ prepare_range_stacks(
 
 \item{touches}{Count all touched cells.}
 }
+\value{
+A list with \code{palms} and \code{mammals}, each a \code{terra::SpatRaster}. If \code{output_dir} is supplied, RDS files are also written there.
+}
 \description{
 Prepare palm and mammal range stacks
 }

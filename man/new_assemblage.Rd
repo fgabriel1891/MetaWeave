@@ -13,6 +13,12 @@ new_assemblage(species, cell_id = NA_integer_, coordinates = NULL)
 
 \item{coordinates}{Optional named numeric vector containing x and y.}
 }
+\value{
+An \code{assemblage} list with \code{species}, \code{cell_id}, and \code{coordinates}.
+}
 \description{
 Construct a local assemblage
+}
+\examples{
+new_assemblage(list(plants = c("a", "b"), animals = "x"), cell_id = 1)
 }

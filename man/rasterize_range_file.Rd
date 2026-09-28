@@ -13,6 +13,9 @@ rasterize_range_file(shp_file, template, touches = TRUE)
 
 \item{touches}{Count all touched cells.}
 }
+\value{
+A one-layer \code{terra::SpatRaster}, named from the file stem, with 1 for presence and \code{NA} for background.
+}
 \description{
 Rasterize one range file
 }

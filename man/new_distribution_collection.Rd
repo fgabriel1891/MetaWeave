@@ -13,6 +13,9 @@ new_distribution_collection(data, guild = NULL, metadata = NULL)
 
 \item{metadata}{Optional species metadata data frame.}
 }
+\value{
+A \code{distribution_collection} list with \code{data} (the raster), \code{guild}, and \code{metadata}.
+}
 \description{
 Construct a distribution collection
 }

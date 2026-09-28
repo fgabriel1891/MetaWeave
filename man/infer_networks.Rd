@@ -13,6 +13,9 @@ infer_networks(assemblages, model, template = NULL)
 
 \item{template}{Optional spatial template.}
 }
+\value{
+A \code{network_collection} containing one network per assemblage and an index with \code{cell_id}, \code{x}, and \code{y} columns.
+}
 \description{
 Infer networks for many assemblages
 }

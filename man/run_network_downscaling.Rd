@@ -9,6 +9,9 @@ run_network_downscaling(...)
 \arguments{
 \item{...}{Arguments passed to \code{downscale_networks()}.}
 }
+\value{
+A list with \code{result} (a summarized \code{network_collection}) and \code{rasters} (a \code{terra::SpatRaster} of metrics).
+}
 \description{
 Complete compatibility workflow
 }

@@ -2,6 +2,9 @@
 #' @param extent Numeric vector `c(xmin, xmax, ymin, ymax)`.
 #' @param resolution Cell resolution.
 #' @param crs Coordinate reference system.
+#' @return A `terra::SpatRaster` with the requested extent, resolution, and coordinate reference system.
+#' @examples
+#' create_standard_grid(c(0, 2, 0, 2), resolution = 1)
 #' @export
 create_standard_grid <- function(extent = c(-180, 180, -90, 90), resolution = 1, crs = "EPSG:4326") {
   terra::rast(xmin = extent[1], xmax = extent[2], ymin = extent[3], ymax = extent[4], resolution = resolution, crs = crs)
@@ -10,6 +13,7 @@ create_standard_grid <- function(extent = c(-180, 180, -90, 90), resolution = 1,
 #' Create a bounding-box polygon
 #' @param extent Numeric vector `c(xmin, xmax, ymin, ymax)`.
 #' @param crs Coordinate reference system.
+#' @return A polygon `terra::SpatVector` representing the bounding box.
 #' @export
 make_bbox <- function(extent, crs = "EPSG:4326") {
   terra::as.polygons(terra::ext(extent), crs = crs)
@@ -18,6 +22,7 @@ make_bbox <- function(extent, crs = "EPSG:4326") {
 #' List ESRI shapefiles
 #' @param path Directory.
 #' @param recursive Search recursively.
+#' @return A character vector of shapefile paths, empty if no matches are found.
 #' @export
 list_shapefiles <- function(path, recursive = FALSE) {
   list.files(path, pattern = "\\.shp$", full.names = TRUE, recursive = recursive, ignore.case = TRUE)
@@ -27,6 +32,7 @@ list_shapefiles <- function(path, recursive = FALSE) {
 #' @param shp_file Shapefile path.
 #' @param template Raster template.
 #' @param touches Count all touched cells.
+#' @return A one-layer `terra::SpatRaster`, named from the file stem, with 1 for presence and `NA` for background.
 #' @export
 rasterize_range_file <- function(shp_file, template, touches = TRUE) {
   v <- terra::project(terra::vect(shp_file), terra::crs(template))
@@ -41,6 +47,7 @@ rasterize_range_file <- function(shp_file, template, touches = TRUE) {
 #' @param species_col Species-name column.
 #' @param species_keep Optional species subset.
 #' @param touches Count all touched cells.
+#' @return A `terra::SpatRaster` with one named layer per retained species, using 1 for presence and `NA` for background.
 #' @export
 rasterize_range_rows <- function(x, template, species_col, species_keep = NULL, touches = TRUE) {
   v <- terra::vect(x)
@@ -66,6 +73,7 @@ rasterize_range_rows <- function(x, template, species_col, species_keep = NULL, 
 #' @param species_keep Optional species subset.
 #' @param region Optional crop region.
 #' @param touches Count all touched cells.
+#' @return A `terra::SpatRaster` with named species layers, optionally cropped and filtered to the region.
 #' @export
 build_range_stack <- function(source, template, species_col = NULL, species_keep = NULL, region = NULL, touches = TRUE) {
   if (is.character(source) && length(source) == 1L && dir.exists(source)) {
@@ -85,6 +93,7 @@ build_range_stack <- function(source, template, species_col = NULL, species_keep
 #' @param stack Species raster stack.
 #' @param region Crop region.
 #' @param return_cropped Return cropped rather than original layers.
+#' @return A `terra::SpatRaster` containing layers with nonmissing cells in the crop region. Zero values count as nonmissing; this helper expects presence/NA range rasters.
 #' @export
 crop_filter_stack <- function(stack, region, return_cropped = TRUE) {
   cropped <- terra::crop(stack, region)
@@ -98,6 +107,7 @@ crop_filter_stack <- function(stack, region, return_cropped = TRUE) {
 #' @param mammal_species_keep Optional mammal species subset.
 #' @param output_dir Optional directory in which to save the range stacks.
 #' @inheritParams build_range_stack
+#' @return A list with `palms` and `mammals`, each a `terra::SpatRaster`. If `output_dir` is supplied, RDS files are also written there.
 #' @export
 prepare_range_stacks <- function(palm_source, mammal_source, mammal_species_col, mammal_species_keep = NULL,
                                  template = create_standard_grid(), region = NULL, output_dir = NULL, touches = TRUE) {
@@ -114,6 +124,7 @@ prepare_range_stacks <- function(palm_source, mammal_source, mammal_species_col,
 #' Assemble local communities from aligned distribution rasters
 #' @param distributions Named list of SpatRaster or distribution_collection objects.
 #' @param min_species Minimum species per group.
+#' @return A list of `assemblage` objects, one per cell meeting `min_species` in every group. Nonzero, nonmissing raster values indicate presence; the list is empty if no cell qualifies.
 #' @export
 assemble_communities <- function(distributions, min_species = 1L) {
   if (!is.list(distributions) || is.null(names(distributions))) stop("`distributions` must be a named list.")

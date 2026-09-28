@@ -23,6 +23,9 @@ rasterize_range_rows(
 
 \item{touches}{Count all touched cells.}
 }
+\value{
+A \code{terra::SpatRaster} with one named layer per retained species, using 1 for presence and \code{NA} for background.
+}
 \description{
 Rasterize rows grouped by species
 }

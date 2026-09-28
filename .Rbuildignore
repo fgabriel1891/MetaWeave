@@ -4,3 +4,7 @@
 ^cran-comments\.md$
 
 ^CITATION\.cff$
+
+^docs$
+^CONTRIBUTING\.md$
+^LICENSE\.md$

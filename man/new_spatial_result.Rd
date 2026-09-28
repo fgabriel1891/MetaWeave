@@ -11,6 +11,9 @@ new_spatial_result(data, metrics = names(data))
 
 \item{metrics}{Names of mapped metrics.}
 }
+\value{
+A \code{spatial_result} list with the spatial object in \code{data} and metric names in \code{metrics}.
+}
 \description{
 Construct a spatial result
 }

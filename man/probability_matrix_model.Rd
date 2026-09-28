@@ -21,8 +21,17 @@ Row and column names are required and must be unique.}
 
 \item{name}{Descriptive model name stored in outputs.}
 }
+\value{
+An \code{inference_model} with subclass \code{probability_matrix_model}. Prediction subsets the supplied matrix to locally present, matched species.
+}
 \description{
 Use this backend when an external model returns probabilities for named
 species pairs directly, including ensemble-averaged predictions for which
 no single coherent block partition exists.
+}
+\examples{
+p <- matrix(c(0.8, 0.3), 2, dimnames = list(c("a", "b"), "x"))
+model <- probability_matrix_model(p, "plants", "animals")
+site <- new_assemblage(list(plants = "a", animals = "x"))
+infer_network(site, model)$matrix
 }

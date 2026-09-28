@@ -13,6 +13,9 @@ crop_filter_stack(stack, region, return_cropped = TRUE)
 
 \item{return_cropped}{Return cropped rather than original layers.}
 }
+\value{
+A \code{terra::SpatRaster} containing layers with nonmissing cells in the crop region. Zero values count as nonmissing; this helper expects presence/NA range rasters.
+}
 \description{
 Crop a stack and remove species absent from the region
 }

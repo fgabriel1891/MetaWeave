@@ -20,6 +20,9 @@ new_inference_model(
 
 \item{subclass}{Optional additional class name.}
 }
+\value{
+An \code{inference_model} list containing \code{name}, \code{predict}, and \code{parameters}, with the optional subclass prepended.
+}
 \description{
 Construct a pluggable inference model
 }

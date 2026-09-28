@@ -15,6 +15,9 @@ run_spatial_inference(distributions, model, min_species = 1L, threshold = NULL)
 
 \item{threshold}{Optional probability threshold for network summaries.}
 }
+\value{
+A list with \code{result} (a summarized \code{network_collection}) and \code{spatial} (a \code{spatial_result} containing metric rasters).
+}
 \description{
 Run generic spatial ecological-network inference
 }
